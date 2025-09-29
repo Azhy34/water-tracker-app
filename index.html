@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Трекер воды 💧</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 30px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .date {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .water-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .water-display::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+        }
+
+        .water-amount {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 10px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .water-goal {
+            font-size: 16px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-container {
+            background: #e0e0e0;
+            border-radius: 15px;
+            height: 30px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 15px;
+            transition: width 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: wave 2s linear infinite;
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .percentage {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .quick-add {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .quick-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .quick-btn:active {
+            transform: scale(0.95);
+        }
+
+        .quick-btn .icon {
+            font-size: 24px;
+        }
+
+        .custom-add {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .add-btn:active {
+            transform: scale(0.95);
+        }
+
+        .settings {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .settings h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .setting-row label {
+            flex: 1;
+            color: #666;
+        }
+
+        .setting-row input {
+            width: 100px;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+        }
+
+        .history {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .reset-btn {
+            width: 100%;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            text-align: center;
+            display: none;
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .celebration h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 32px;
+        }
+
+        .celebration p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .celebration button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💧 Трекер воды</h1>
+        <div class="date" id="currentDate"></div>
+        
+        <div class="water-display">
+            <div class="water-amount" id="currentAmount">0 мл</div>
+            <div class="water-goal">Цель: <span id="goalAmount">2000</span> мл</div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="percentage" id="percentage">0% от дневной цели</div>
+        
+        <div class="quick-add">
+            <button class="quick-btn" onclick="addWater(200)">
+                <span class="icon">🥤</span>
+                <span>200 мл</span>
+            </button>
+            <button class="quick-btn" onclick="addWater(250)">
+                <span class="icon">☕</span>
+                <span>250 мл</span>
+            </button>
+            <button class="quick-btn" onclick="addWater(300)">
+                <span class="icon">🥛</span>
+                <span>300 мл</span>
+            </button>
+            <button class="quick-btn" onclick="addWater(500)">
+                <span class="icon">🍶</span>
+                <span>500 мл</span>
+            </button>
+        </div>
+        
+        <div class="custom-add">
+            <input type="number" id="customAmount" placeholder="Количество в мл" min="0" max="5000">
+            <button class="add-btn" onclick="addCustom()">Добавить</button>
+        </div>
+        
+        <div class="settings">
+            <h3>⚙️ Настройки</h3>
+            <div class="setting-row">
+                <label>Дневная цель (мл):</label>
+                <input type="number" id="goalInput" value="2000" min="1000" max="5000" onchange="updateGoal()">
+            </div>
+        </div>
+        
+        <div class="history">
+            <h3>📊 История сегодня</h3>
+            <div id="historyList"></div>
+        </div>
+        
+        <button class="reset-btn" onclick="resetDay()">🔄 Сбросить день</button>
+    </div>
+    
+    <div class="overlay" id="overlay"></div>
+    <div class="celebration" id="celebration">
+        <h2>🎉 Поздравляем!</h2>
+        <p>Вы достигли дневной цели!</p>
+        <button onclick="closeCelebration()">Отлично!</button>
+    </div>
+    
+    <script>
+        let waterData = {
+            current: 0,
+            goal: 2000,
+            history: []
+        };
+        
+        function loadData() {
+            const today = new Date().toDateString();
+            const savedDate = localStorage.getItem('waterDate');
+            
+            if (savedDate !== today) {
+                // Новый день - сбросить данные
+                waterData = {
+                    current: 0,
+                    goal: localStorage.getItem('waterGoal') || 2000,
+                    history: []
+                };
+                localStorage.setItem('waterDate', today);
+            } else {
+                // Загрузить данные текущего дня
+                const saved = localStorage.getItem('waterData');
+                if (saved) {
+                    waterData = JSON.parse(saved);
+                }
+            }
+            
+            updateDisplay();
+        }
+        
+        function saveData() {
+            localStorage.setItem('waterData', JSON.stringify(waterData));
+        }
+        
+        function addWater(amount) {
+            const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            waterData.current += amount;
+            waterData.history.unshift({ time, amount });
+            
+            if (waterData.history.length > 10) {
+                waterData.history.pop();
+            }
+            
+            saveData();
+            updateDisplay();
+            
+            if (waterData.current >= waterData.goal && waterData.current - amount < waterData.goal) {
+                showCelebration();
+            }
+        }
+        
+        function addCustom() {
+            const input = document.getElementById('customAmount');
+            const amount = parseInt(input.value);
+            
+            if (amount && amount > 0) {
+                addWater(amount);
+                input.value = '';
+            }
+        }
+        
+        function updateGoal() {
+            const goalInput = document.getElementById('goalInput');
+            waterData.goal = parseInt(goalInput.value);
+            localStorage.setItem('waterGoal', waterData.goal);
+            saveData();
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            document.getElementById('currentAmount').textContent = `${waterData.current} мл`;
+            document.getElementById('goalAmount').textContent = waterData.goal;
+            document.getElementById('goalInput').value = waterData.goal;
+            
+            const percentage = Math.min(100, Math.round((waterData.current / waterData.goal) * 100));
+            document.getElementById('percentage').textContent = `${percentage}% от дневной цели`;
+            document.getElementById('progressBar').style.width = `${percentage}%`;
+            
+            updateHistory();
+        }
+        
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            
+            if (waterData.history.length === 0) {
+                historyList.innerHTML = '<div style="color: #999;">Пока нет записей</div>';
+                return;
+            }
+            
+            historyList.innerHTML = waterData.history.map(item => `
+                <div class="history-item">
+                    <span>${item.time}</span>
+                    <span><strong>+${item.amount} мл</strong></span>
+                </div>
+            `).join('');
+        }
+        
+        function resetDay() {
+            if (confirm('Вы уверены, что хотите сбросить все данные за сегодня?')) {
+                waterData = {
+                    current: 0,
+                    goal: waterData.goal,
+                    history: []
+                };
+                saveData();
+                updateDisplay();
+            }
+        }
+        
+        function showCelebration() {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('celebration').style.display = 'block';
+        }
+        
+        function closeCelebration() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('celebration').style.display = 'none';
+        }
+        
+        function updateDate() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const date = new Date().toLocaleDateString('ru-RU', options);
+            document.getElementById('currentDate').textContent = date;
+        }
+        
+        // Добавить обработчик для Enter в поле ввода
+        document.getElementById('customAmount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addCustom();
+            }
+        });
+        
+        // Инициализация
+        updateDate();
+        loadData();
+        
+        // Обновлять дату каждую минуту
+        setInterval(updateDate, 60000);
+    </script>
+</body>
+</html>
